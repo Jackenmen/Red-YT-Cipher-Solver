@@ -68,6 +68,7 @@ class SolverServerProcess:
         self.start_timeout = start_timeout
         self._client_timeout = client_timeout
         self._proc: asyncio.subprocess.Process | None = None
+        self._startup_finished = asyncio.Event()
         self._stopped = asyncio.Event()
         self._running = False
         self._restarting = False
@@ -99,6 +100,33 @@ class SolverServerProcess:
         """Close all of the resources held by this object."""
         await self.stop()
         await self._session.close()
+
+    async def wait_for_startup(self) -> bool:
+        """
+        Wait for the startup to finish (successfully or not).
+
+        Returns
+        -------
+        bool
+            ``True`` if the startup was successful, ``False`` otherwise.
+        """
+        await self._startup_finished.wait()
+        return not self._stopped.is_set()
+
+    async def wait_until_stopped(self) -> None:
+        """Wait until the server stops."""
+        await self._stopped.wait()
+
+    async def check_restart_failure(self) -> None:
+        """
+        Check whether a scheduled restart failed.
+
+        This function will raise the exception from scheduled restart
+        or return immediately, if the scheduled restart was successful
+        or when there was no restart.
+        """
+        if self._restart_task is not None:
+            await self._restart_task
 
     def is_running(self) -> bool:
         """Whether the server is currently running."""
@@ -156,6 +184,8 @@ class SolverServerProcess:
         while wait:
             wait = (time.perf_counter() - process_start) < start_timeout
             if self._proc.returncode is not None:
+                await self.stop(timeout=1.0)
+                self._startup_finished.set()
                 raise ProcessStartError("The process failed to start.")
 
             request_start = time.perf_counter()
@@ -174,12 +204,14 @@ class SolverServerProcess:
             await asyncio.sleep(1.0 - request_duration)
         else:
             await self.stop(timeout=1.0)
+            self._startup_finished.set()
             raise TimeoutError("The server did not start in time.")
 
         self._running = True
         self._health_checker = asyncio.create_task(self._health_check_loop())
         self._proc_watcher = asyncio.create_task(self._watch_process(self._proc))
         log.info("A solver server process has been started successfully.")
+        self._startup_finished.set()
 
     async def stop(self, *, timeout: float = 5.0) -> None:
         """
@@ -309,6 +341,5 @@ class SolverServerProcess:
         """
         async with self:
             await self.start()
-            await self._stopped.wait()
-            if self._restart_task is not None:
-                await self._restart_task
+            await self.wait_until_stopped()
+            await self.check_restart_failure()
