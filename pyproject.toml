@@ -4,7 +4,8 @@ version = "0.1.0"
 description = "A thin wrapper over yt-dlp/ejs for deciphering YT signatures. Comes with Deno out of the box."
 readme = "README.md"
 authors = [
-    { name = "Jakub Kuczys", email = "me@jacken.men" }
+    { name = "Jakub Kuczys", email = "me@jacken.men" },
+    { name = "Cog Creators" },
 ]
 license = "MIT"
 license-files = ["LICEN[CS]E"]
@@ -16,6 +17,18 @@ dependencies = [
     "yarl~=1.15.2",
     "yt-dlp-ejs~=0.5.0",
 ]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Jackenmen/Red-YT-Cipher-Solver"
+"Documentation" = "https://github.com/Jackenmen/Red-YT-Cipher-Solver/blob/main/README.md"
+"Issue Tracker" = "https://github.com/Jackenmen/Red-YT-Cipher-Solver/blob/main/README.md/issues"
+"Source Code" = "https://github.com/Jackenmen/Red-YT-Cipher-Solver/blob/main/README.md"
 
 [project.scripts]
 red-yt-cipher-solver = "red_yt_cipher_solver.__main__:main"
