@@ -102,3 +102,6 @@ explicit-preview-rules = true
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
+
+[tool.ruff.lint.flake8-boolean-trap]
+extend-allowed-calls = ["logging.captureWarnings"]

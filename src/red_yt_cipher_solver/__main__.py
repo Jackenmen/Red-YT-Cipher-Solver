@@ -6,10 +6,12 @@ import dataclasses
 import enum
 import json
 import logging
+import logging.handlers
 import os
 import signal
 import sys
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from types import TracebackType
 from typing import Any, NoReturn, TypeVar
 
@@ -21,7 +23,7 @@ from typing_extensions import Self
 from . import _platform_support, challenges, player
 
 _T = TypeVar("_T")
-log = logging.getLogger(__name__)
+log = logging.getLogger("red_yt_cipher_solver")
 
 
 def route(method: str, path: str) -> Callable[[_T], _T]:
@@ -233,8 +235,26 @@ async def _get_player_content(session: aiohttp.ClientSession, player_url: str) -
 
 
 async def _serve_command(args: argparse.Namespace) -> int:
-    logging.basicConfig(level=logging.INFO)
     token = os.getenv("RED_YT_CIPHER_SERVER_TOKEN", "")
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "[{asctime}] [{levelname}] {name}: {message}", datefmt="%Y-%m-%d %H:%M:%S", style="{"
+    )
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter)
+    root_logger.addHandler(stdout_handler)
+    logging.captureWarnings(True)
+
+    if args.log_file:
+        log_path = args.log_file.absolute()
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        file_handler = logging.handlers.RotatingFileHandler(
+            filename=args.log_file, maxBytes=1_000_000, backupCount=5
+        )
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
 
     async with SolverServer(args.host, args.port, token=token) as server:
         return await server.run()
@@ -310,6 +330,7 @@ async def _main() -> NoReturn:
     serve_parser.set_defaults(func=_serve_command)
     serve_parser.add_argument("host", nargs="?", default="localhost")
     serve_parser.add_argument("port", type=int, nargs="?", default=2334)
+    serve_parser.add_argument("--log-file", type=Path)
 
     solve_parser = subparsers.add_parser(
         "solve", help="Solve JS challenge request using the yt-dlp/ejs solver."
