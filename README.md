@@ -1,5 +1,8 @@
 # Red-YT-Cipher-Solver
 
+[![Red-YT-Cipher-Solver on PyPI](https://img.shields.io/pypi/v/Red-YT-Cipher-Solver)](https://pypi.org/project/Red-YT-Cipher-Solver)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A thin wrapper over [yt-dlp/ejs](https://github.com/yt-dlp/ejs) for deciphering YT signatures.
 Aside from yt-dlp/ejs, this uses the [official Deno PyPI package](https://github.com/denoland/deno_pypi),
 meaning no additional setup is required beyond installing the package and then using it either as a library
