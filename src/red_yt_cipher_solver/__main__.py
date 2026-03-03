@@ -51,7 +51,7 @@ class SolverServer:
         self._stopped = asyncio.Event()
         self._runner: web.AppRunner | None = None
         self._site: web.TCPSite | None = None
-        self.session: aiohttp.ClientSession
+        self._session: aiohttp.ClientSession
 
     @web.middleware
     async def _auth_middleware(
@@ -101,10 +101,10 @@ class SolverServer:
         await self.close()
 
     async def async_initialize(self) -> None:
-        self.session = aiohttp.ClientSession()
+        self._session = aiohttp.ClientSession()
 
     async def close(self) -> None:
-        await self.session.close()
+        await self._session.close()
 
     async def start(self) -> None:
         log.info("Starting the server...")
@@ -168,7 +168,7 @@ class SolverServer:
         if not n_param:
             raise web.HTTPBadRequest(reason="n_param not found in request or stream_url")
 
-        player_content = await _get_player_content(self.session, player_url)
+        player_content = await _get_player_content(self._session, player_url)
         challenge_requests: list[challenges.JsChallengeRequest] = []
 
         n_challenge_request = challenges.NChallengeRequest([n_param])
