@@ -289,7 +289,7 @@ async def _solve_command(args: argparse.Namespace) -> int:
 
 
 async def _main() -> NoReturn:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="red-yt-cipher-solver")
     subparsers = parser.add_subparsers(required=True, help="command to run")
 
     serve_parser = subparsers.add_parser(
