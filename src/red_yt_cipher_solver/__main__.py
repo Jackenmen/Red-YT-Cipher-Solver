@@ -24,14 +24,22 @@ _T = TypeVar("_T")
 log = logging.getLogger(__name__)
 
 
-def post_route(path: str) -> Callable[[_T], _T]:
+def route(method: str, path: str) -> Callable[[_T], _T]:
     def decorator(func: _T) -> _T:
         app_routes = getattr(func, "__app_routes__", [])
-        app_routes.append(("POST", path))
+        app_routes.append((method, path))
         setattr(func, "__app_routes__", app_routes)
         return func
 
     return decorator
+
+
+def get_route(path: str) -> Callable[[_T], _T]:
+    return route("GET", path)
+
+
+def post_route(path: str) -> Callable[[_T], _T]:
+    return route("POST", path)
 
 
 def get_required_key(payload: dict[str, str], key: str) -> str:
@@ -133,6 +141,10 @@ class SolverServer:
 
         return 0
 
+    @get_route("/")
+    async def index(self, _request: web.Request) -> web.Response:
+        return web.json_response({"pypi_url": "https://pypi.org/project/Red-YT-Cipher-Solver/"})
+
     @post_route("/get_sts")
     async def get_sts(self, request: web.Request) -> web.Response:
         payload = await request.json()
@@ -141,7 +153,7 @@ class SolverServer:
         except ValueError as exc:
             raise web.HTTPBadRequest(reason=str(exc)) from None
 
-        player_content = await _get_player_content(self.session, player_url)
+        player_content = await _get_player_content(self._session, player_url)
         sts = player.get_sts(player_content)
         if not sts:
             raise web.HTTPNotFound(reason="timestamp could not be found in the player script")
