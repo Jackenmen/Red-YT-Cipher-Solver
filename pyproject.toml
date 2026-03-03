@@ -94,6 +94,8 @@ ignore = [
     "S101",
     # the idea of checking untrusted input is not a bad one but this is prone to false positives
     "S603",
+    # `contextlib.suppress()` is slower than `try-except-pass`
+    "SIM105",
 ]
 preview = true
 explicit-preview-rules = true
