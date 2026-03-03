@@ -41,7 +41,7 @@ def get_required_key(payload: dict[str, str], key: str) -> str:
         raise web.HTTPBadRequest(reason=f"required key {key} is missing") from None
 
 
-class App:
+class SolverServer:
     def __init__(self, host: str, port: int, *, token: str = "") -> None:
         self.host = host
         self.port = port
@@ -224,8 +224,8 @@ async def _serve_command(args: argparse.Namespace) -> int:
     logging.basicConfig(level=logging.INFO)
     token = os.getenv("RED_YT_CIPHER_SERVER_TOKEN", "")
 
-    async with App(args.host, args.port, token=token) as app:
-        return await app.run()
+    async with SolverServer(args.host, args.port, token=token) as server:
+        return await server.run()
 
 
 async def _solve_command(args: argparse.Namespace) -> int:
